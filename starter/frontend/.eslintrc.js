@@ -27,7 +27,7 @@ module.exports = {
         singleQuote: true,
         jsxSingleQuote: false,
         printWidth: 120,
-        parser: 'babel-ts',
+        parser: 'babel',
       },
     ],
     // Customize your rules here
