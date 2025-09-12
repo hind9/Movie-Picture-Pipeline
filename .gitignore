@@ -5,3 +5,9 @@ node_modules
 *.tfstate.backup
 credentials
 .pytest_cache
+# Ignore Visual Studio temp/state files
+.vs/
+*.user
+*.suo
+bin/
+obj/
