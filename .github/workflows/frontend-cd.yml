@@ -10,89 +10,88 @@ on:
 jobs:
   Linting:
     runs-on: ubuntu-latest
-    environment: Development Environment
+    environment: "Development Environment"
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        # Perform a cache action to restore cache
-        cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: starter/frontend/package-lock.json
 
-    - name: Install Dependencies
-      working-directory: starter/frontend
-      run: npm ci
+      - name: Install Dependencies
+        working-directory: starter/frontend
+        run: npm ci
 
-    - name: Run Lint
-      working-directory: starter/frontend
-      run: npm run lint   
+      - name: Run Lint
+        working-directory: starter/frontend
+        run: npm run lint   
 
   Testing:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup NodeJS
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        # Perform a cache action to restore cache
-        cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: starter/frontend/package-lock.json
         
-    - name: Install Dependencies
-      working-directory: starter/frontend
-      run: npm ci
-    #Run the npm run test command
-    - name: Run Test
-      run: cd starter/frontend && npm run test
+      - name: Install Dependencies
+        working-directory: starter/frontend
+        run: npm ci
+
+      - name: Run Test
+        working-directory: starter/frontend
+        run: npm run test -- --watchAll=false
 
   build-and-deploy:
     needs: [Linting, Testing]
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
     
-    - name: Setup NodeJS
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: starter/frontend/package-lock.json
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }} 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }} 
 
-    - name: Login to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build Docker image
-      run: |
-        cd starter/frontend
-        docker build \
-          --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} \
-          -t ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} .
+      - name: Build Docker image
+        run: |
+          cd starter/frontend
+          docker build \
+            --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} \
+            -t ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} .
 
-    - name: Push Docker image to ECR
-      run: |
-        docker push ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
 
       - name: Deploy to Kubernetes
         run: |
