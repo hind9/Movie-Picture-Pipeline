@@ -1,0 +1,82 @@
+# Workflow name
+name: Frontend Continuous Integration
+
+# Triggers for the workflow only on pull request against the main branch.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Linting:
+    runs-on: ubuntu-latest
+    environment: Development Environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        # Perform a cache action to restore cache
+        cache: 'npm'
+        cache-dependency-path: starter/frontend/package-lock.json
+
+    - name: Install Dependencies
+      working-directory: starter/frontend
+      run: npm ci
+    # Run the npm run lint command
+    - name: Run Lint
+      run: cd starter/frontend && npm run lint
+
+  Testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        # Perform a cache action to restore cache
+        cache: 'npm'
+        cache-dependency-path: starter/frontend/package-lock.json
+        
+    - name: Install Dependencies
+      working-directory: starter/frontend
+      run: npm ci
+    #Run the npm run test command
+    - name: Run Test
+      run: cd starter/frontend && npm run test
+      
+  Build:
+    needs: [Linting, Testing]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        # Perform a cache action to restore cache
+        cache: 'npm'
+        cache-dependency-path: starter/frontend/package-lock.json
+
+    - name: Build and Run Docker Image
+      run: |
+        cd starter/frontend
+        # NOTE: Make sure the image is built with the URL of the backend system.
+        # The URL below would be the default backend URL when running locally
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
+        docker run --name mp-frontend -p 3000:3000 -d mp-frontend
+        # Open the browser to localhost:3000 and you should see the list of movies,
+        # provided the backend is already running and available on localhost:5000
+
