@@ -56,18 +56,18 @@ jobs:
   build-and-deploy:
     needs: [Linting, Testing]
     runs-on: ubuntu-latest
-    
+  
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-    
+  
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: 'npm'
           cache-dependency-path: starter/frontend/package-lock.json
-
+  
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -75,29 +75,37 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{secrets.AWS_SESSION_TOKEN}}
           aws-region: ${{ secrets.AWS_REGION }}
-          
-
+  
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build Docker image
+        with:
+          region: ${{ secrets.AWS_REGION }}
+  
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names frontend || \
+          aws ecr create-repository --repository-name frontend
+  
+      - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
           IMAGE_TAG: latest
           REPO_NAME: frontend
         run: |
-          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+          docker build --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 \
+            --tag 669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-
+  
       - name: Configure Kubeconfig
-        run:
+        run: |
           aws eks update-kubeconfig --name cluster --region us-east-1
-
+  
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
         env:
           IMAGE_TAG: latest
           REPO_NAME: frontend
         run: |
-            kustomize edit set image frontend=669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-            kustomize build | kubectl apply -f -
+          kustomize edit set image frontend=669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+          kustomize build | kubectl apply -f -
+  
