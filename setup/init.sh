@@ -2,16 +2,17 @@
 set -e -o pipefail
 
 echo "Fetching IAM github-action-user ARN"
-userarn=$(aws iam get-user --user-name github-action-user | jq -r .User.Arn)
+userarn=$(aws iam get-user --user-name github-action-user --query 'User.Arn' --output text)
 
-# Download tool for manipulating aws-auth
-echo "Downloading tool..."
-curl -X GET -L https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.2/aws-iam-authenticator_0.6.2_linux_amd64 -o aws-iam-authenticator
-chmod +x aws-iam-authenticator
+echo "Updating kubeconfig for EKS cluster"
+aws eks update-kubeconfig --region us-east-1 --name cluster
 
-echo "Updating permissions"
-./aws-iam-authenticator add user --userarn="${userarn}" --username=github-action-role --groups=system:masters --kubeconfig="$HOME"/.kube/config --prompt=false
+echo "Adding github-action-user to aws-auth ConfigMap"
 
-echo "Cleaning up"
-rm aws-iam-authenticator
-echo "Done!"
+kubectl patch configmap aws-auth -n kube-system --type='merge' -p "{
+  \"data\": {
+    \"mapUsers\": \"$(kubectl get configmap aws-auth -n kube-system -o jsonpath='{.data.mapUsers}')\n- userarn: $userarn\n  username: github-action-role\n  groups:\n    - system:masters\"
+  }
+}"
+
+echo "Done! github-action-user added to system:masters"

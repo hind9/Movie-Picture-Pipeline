@@ -1,37 +1,37 @@
-# Use Node 20 (matches cheerio/undici requirements)
-FROM public.ecr.aws/docker/library/node:20-alpine
+# ---------- Build Stage ----------
+FROM public.ecr.aws/docker/library/node:20-alpine AS build
 
-# Set build-time environment variable
+# Accept API URL at build time
 ARG REACT_APP_MOVIE_API_URL
 ENV REACT_APP_MOVIE_API_URL=${REACT_APP_MOVIE_API_URL}
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy dependency files
+# Install dependencies first (better layer caching)
 COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
-# Optional: fix formatting (inside container)
-RUN npx prettier --write .
+# Optional: if you actually want to format inside container
+# RUN npx prettier --write .
 
-# Disable ESLint for production build to prevent build failure
+# Prevent ESLint from breaking the production build
 ENV ESLINT_NO_DEV_ERRORS=true
 
-# Build the React app
+# Build React for production
 RUN npm run build
 
-# Use nginx to serve the production build
+# ---------- Runtime Stage ----------
 FROM nginx:alpine
-COPY --from=0 /app/build /usr/share/nginx/html
 
-# Expose port 80
+# Copy the build output to nginx's html folder
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose the container port
 EXPOSE 80
 
-# Start nginx
+# Start nginx in foreground
 CMD ["nginx", "-g", "daemon off;"]
