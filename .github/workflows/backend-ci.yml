@@ -65,4 +65,8 @@ jobs:
 
       - name: Build Docker Image
         working-directory: starter/backend
-        run: docker build --tag mp-backend:latest .
+        run: |
+            # Build the Docker image
+            docker build --tag mp-backend:latest .   
+            # Run the Docker container
+            docker run -p 5000:5000 --name mp-backend -d mp-backend
