@@ -10,7 +10,7 @@ on:
 jobs:
   Linting:
     runs-on: ubuntu-latest
-    environment: "Development Environment"
+    environment: Development Environment
 
     steps:
       - name: Checkout code
@@ -51,7 +51,7 @@ jobs:
 
       - name: Run Test
         working-directory: starter/frontend
-        run: npm run test -- --watchAll=false
+        run: npm run test
 
   build-and-deploy:
     needs: [Linting, Testing]
@@ -81,21 +81,23 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build Docker image
+        working-directory: starter/frontend
+        env:
+          IMAGE_TAG: latest
+          REPO_NAME: frontend
         run: |
-          cd starter/frontend
-          docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} \
-            -t ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} .
+          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+          docker push 669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
 
-      - name: Push Docker image to ECR
-        run: |
-          docker push ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Configure Kubeconfig
+        run:
+          aws eks update-kubeconfig --name cluster --region us-east-1
 
-      - name: Update kubeconfig
+      - name: Deploy Docker Image to Amazon EKS
+        working-directory: starter/frontend/k8s
+        env:
+          IMAGE_TAG: latest
+          REPO_NAME: frontend
         run: |
-          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl set image deployment/mp-frontend \
-            mp-frontend=${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} --record
+            kustomize edit set image frontend=669172573612.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+            kustomize build | kubectl apply -f -
