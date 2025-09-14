@@ -90,26 +90,26 @@ jobs:
       - name: Configure Kubeconfig
         run: aws eks update-kubeconfig --name cluster --region us-east-1
  
- # get Backend URL  
       - name: Get Backend ELB URL
         id: backend_url
         run: |
           BACKEND_ELB=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "BACKEND_ELB=$BACKEND_ELB" >> $GITHUB_ENV
-          
+      
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
           IMAGE_TAG: latest
           REPO_NAME: frontend
-          REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_ELB }}
+          BACKEND_ELB: ${{ env.BACKEND_ELB }}
         run: |
-          echo "Using backend URL: http://$REACT_APP_MOVIE_API_URL/movies"
+          echo "Using backend URL: $BACKEND_ELB"
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/movies \
+            --build-arg REACT_APP_MOVIE_API_URL=http://$BACKEND_ELB/movies \
             --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-    
+
+
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
         env:
