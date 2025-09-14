@@ -87,20 +87,26 @@ jobs:
           aws ecr describe-repositories --repository-names frontend || \
           aws ecr create-repository --repository-name frontend
 
-      # backend URI
-      - name: Configure Kubeconfig
-        run: aws eks update-kubeconfig --name cluster --region us-east-1
+      - name: Get Backend ELB URL
+        id: backend_url
+        run: |
+          BACKEND_URL=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
       
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
           IMAGE_TAG: latest
           REPO_NAME: frontend
+          REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_URL }}
         run: |
-          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+          echo "Using backend URL: $REACT_APP_MOVIE_API_URL"
+          docker build --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/movies \
+            --tag 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-    
-
+      
+      - name: Configure Kubeconfig
+        run: aws eks update-kubeconfig --name cluster --region us-east-1
+      
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
         env:
