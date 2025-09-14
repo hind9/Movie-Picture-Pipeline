@@ -87,7 +87,7 @@ jobs:
           aws ecr describe-repositories --repository-names frontend || \
           aws ecr create-repository --repository-name frontend
 
-
+# backend URI
       - name: Configure Kubeconfig
         run: aws eks update-kubeconfig --name cluster --region us-east-1
       
