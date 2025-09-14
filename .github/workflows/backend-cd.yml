@@ -1,6 +1,6 @@
 # Workflow name
 name: Backend Continuous Deployment
-# trigger on main branch 
+
 on:
   workflow_dispatch:
   push:
