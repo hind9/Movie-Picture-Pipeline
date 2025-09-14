@@ -99,7 +99,9 @@ jobs:
         run: |
           docker build --build-arg REACT_APP_MOVIE_API_URL=http://aef1eb5d00cd740d38902a7046ace4a6-61707594.us-east-1.elb.amazonaws.com --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-
+     
+      - name: Check Backend URL
+        run: echo "Backend URL: $REACT_APP_MOVIE_API_URL"
 
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
