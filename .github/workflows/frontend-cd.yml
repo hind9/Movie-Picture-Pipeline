@@ -97,6 +97,7 @@ jobs:
           BACKEND_ELB=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "BACKEND_ELB=$BACKEND_ELB" >> $GITHUB_ENV
       
+          
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
@@ -104,11 +105,13 @@ jobs:
           REPO_NAME: frontend
           BACKEND_ELB: ${{ env.BACKEND_ELB }}
         run: |
-          echo "Using backend URL: http://$BACKEND_ELB/movies"
+          FULL_BACKEND_URL="http://$BACKEND_ELB/movies"
+          echo "Using backend URL: $FULL_BACKEND_URL"
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://$BACKEND_ELB/movies \
-            --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-          docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+            --build-arg REACT_APP_MOVIE_API_URL=$FULL_BACKEND_URL \
+            --tag ***.dkr.ecr.***.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+          docker push ***.dkr.ecr.***.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+
 
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
