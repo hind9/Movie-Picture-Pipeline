@@ -104,11 +104,11 @@ jobs:
           REPO_NAME: frontend
           REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_ELB }}
         run: |
-          echo "Using backend URL: $REACT_APP_MOVIE_API_URL"
-          docker build --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL \
+          echo "Using backend URL: http://$REACT_APP_MOVIE_API_URL/api"
+          docker build \
+            --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/api \
             --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-  
     
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
