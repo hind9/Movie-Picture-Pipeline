@@ -109,8 +109,8 @@ jobs:
           echo "Using backend URL: $FULL_BACKEND_URL"
           docker build \
             --build-arg REACT_APP_MOVIE_API_URL=$FULL_BACKEND_URL \
-            --tag ***.dkr.ecr.***.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-          docker push ***.dkr.ecr.***.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+            --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+          docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
 
 
       - name: Deploy Docker Image to Amazon EKS
