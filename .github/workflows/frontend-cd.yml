@@ -91,7 +91,7 @@ jobs:
         id: backend_url
         run: |
           BACKEND_URL=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-      
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
