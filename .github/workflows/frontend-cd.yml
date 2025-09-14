@@ -104,9 +104,9 @@ jobs:
           REPO_NAME: frontend
           REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_ELB }}
         run: |
-          echo "Using backend URL: http://$REACT_APP_MOVIE_API_URL/api"
+          echo "Using backend URL: http://$REACT_APP_MOVIE_API_URL/movies"
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/api \
+            --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/movies \
             --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
     
