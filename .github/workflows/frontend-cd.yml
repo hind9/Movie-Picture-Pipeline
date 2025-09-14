@@ -1,6 +1,7 @@
 # Workflow name
 name: Frontend Continuous Deployment
 
+# trigger push 
 on:
   workflow_dispatch:
   push:
