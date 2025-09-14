@@ -86,7 +86,10 @@ jobs:
         run: |
           aws ecr describe-repositories --repository-names frontend || \
           aws ecr create-repository --repository-name frontend
-
+      
+      - name: Configure Kubeconfig
+        run: aws eks update-kubeconfig --name cluster --region us-east-1
+      
       - name: Get Backend ELB URL
         id: backend_url
         run: |
@@ -104,9 +107,7 @@ jobs:
             --tag 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
       
-      - name: Configure Kubeconfig
-        run: aws eks update-kubeconfig --name cluster --region us-east-1
-      
+
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
         env:
