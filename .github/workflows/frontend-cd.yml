@@ -96,6 +96,7 @@ jobs:
           BACKEND_URL=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "BACKEND_URL=http://$BACKEND_URL/movies" >> $GITHUB_ENV
 
+
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
@@ -103,7 +104,7 @@ jobs:
           REPO_NAME: frontend
           REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_URL }}
         run: |
-          echo "Using backend URL: $REACT_APP_MOVIE_API_URL"
+          echo "Using backend URL Value: $REACT_APP_MOVIE_API_URL"
           docker build --no-cache \
             --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL \
             --tag 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
