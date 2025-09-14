@@ -102,11 +102,10 @@ jobs:
         env:
           IMAGE_TAG: latest
           REPO_NAME: frontend
-          REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_URL }}
         run: |
           echo "Using backend URL Value: $REACT_APP_MOVIE_API_URL"
           docker build --no-cache \
-            --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL \
+            --build-arg REACT_APP_MOVIE_API_URL= http://a2cd78bf5873743238ab02ed38d0aa1b-1374237211.us-east-1.elb.amazonaws.com \
             --tag 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 035090530364.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
 
