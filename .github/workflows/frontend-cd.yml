@@ -1,6 +1,7 @@
 # Workflow name
 name: Frontend Continuous Deployment
 
+# trigger on main branches 
 
 on:
   workflow_dispatch:
