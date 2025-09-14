@@ -1,8 +1,6 @@
 # Workflow name
 name: Frontend Continuous Deployment
 
-# trigger on main branches 
-
 on:
   workflow_dispatch:
   push:
@@ -98,8 +96,7 @@ jobs:
         run: |
           BACKEND_ELB=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "BACKEND_ELB=$BACKEND_ELB" >> $GITHUB_ENV
-         
-  
+          
       - name: Build and Push Docker Image
         working-directory: starter/frontend
         env:
@@ -107,11 +104,11 @@ jobs:
           REPO_NAME: frontend
           REACT_APP_MOVIE_API_URL: ${{ env.BACKEND_ELB }}
         run: |
-          echo "Using backend URL: http://$REACT_APP_MOVIE_API_URL/api"
-          docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL/api \
+          echo "Using backend URL: $REACT_APP_MOVIE_API_URL"
+          docker build --build-arg REACT_APP_MOVIE_API_URL=http://$REACT_APP_MOVIE_API_URL \
             --tag 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
           docker push 239828331157.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+  
     
       - name: Deploy Docker Image to Amazon EKS
         working-directory: starter/frontend/k8s
