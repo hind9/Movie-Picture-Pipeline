@@ -1,8 +1,7 @@
 # Workflow name
 name: Backend Continuous Integration
 
-# Triggers for the workflow only on pull request against the main branch.
-on:
+# Triggers for the workflow only on pull request against the main branches.on:
   workflow_dispatch:
   pull_request:
     branches:
