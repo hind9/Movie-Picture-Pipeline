@@ -77,7 +77,7 @@ jobs:
       run: |
         # NOTE: Make sure the image is built with the URL of the backend system.
         # The URL below would be the default backend URL when running locally
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://a2cd78bf5873743238ab02ed38d0aa1b-1374237211.us-east-1.elb.amazonaws.com --tag=mp-frontend:latest .
         docker run --name mp-frontend -p 3000:3000 -d mp-frontend
         
 
